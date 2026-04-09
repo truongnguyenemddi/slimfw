@@ -50,6 +50,22 @@ class HttpErrorHandler extends SlimErrorHandler
             }
         }
 
+        /* START - Handle page not found */
+        $uri = $this->request->getUri()->getPath();
+        if ($exception instanceof HttpNotFoundException && !str_starts_with($uri, '/api')) {
+            $response = $this->responseFactory->createResponse(404);
+            $viewFile = __DIR__ . '/../Views/errors/404.php';
+            if (file_exists($viewFile)) {
+                ob_start();
+                include $viewFile;
+                $response->getBody()->write(ob_get_clean());
+            } else {
+                $response->getBody()->write('<h1>404 Not Found</h1>');
+            }
+            return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+        }
+        /* END - Handle page not found */
+
         if (
             !($exception instanceof HttpException)
             && $exception instanceof Throwable

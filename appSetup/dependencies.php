@@ -9,6 +9,7 @@ use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Slim\Views\PhpRenderer;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -42,6 +43,15 @@ return function (ContainerBuilder $containerBuilder) {
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
             return $pdo;
+        },
+        PhpRenderer::class => function (ContainerInterface $c) {
+            $settings = $c->get(SettingsInterface::class);
+            $viewSettings = $settings->get('view');
+            
+            $renderer = new PhpRenderer($viewSettings['template_path']);
+            $renderer->setLayout('layouts/main-layout.php');
+            
+            return $renderer;
         },
     ]);
 };

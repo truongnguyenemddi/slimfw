@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Routes;
 
 use Slim\App;
@@ -14,18 +16,30 @@ class ApiRoutes
 {
     public function __invoke(App $app): void
     {
-        $app->group('/api', function ($api) {
-            /* Public routes */
-            $api->post('/login', LoginAction::class);
+        $app->group('/api', fn($api) => [
+            /*** START - Public routes ***/
 
-            /* Protected routes */
-            $api->group('', function (Group $group) {
-                $group->post('/logout', LogoutAction::class);
-                $group->group('/users', function (Group $group) {
-                    $group->get('', ListUsersAction::class);
-                    $group->get('/{id}', ViewUserAction::class);
-                });
-            })->add(AuthMiddleware::class);
-        });
+            // login
+            $api->post('/login', LoginAction::class),
+
+            /*** END - Public routes ***/
+
+
+
+            /*** START - Protected routes ***/
+
+            $api->group('', fn(Group $group) => [
+                // auth
+                $group->post('/logout', LogoutAction::class),
+
+                // user
+                $group->group('/users', fn(Group $group) => [
+                    $group->get('', ListUsersAction::class),
+                    $group->get('/{id}', ViewUserAction::class),
+                ]),
+            ])->add(AuthMiddleware::class),
+
+            /*** END - Protected routes ***/
+        ]);
     }
 }
